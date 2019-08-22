@@ -36,20 +36,26 @@ def bit_plane(filename, order):
 	
 # Part 4
 # 4x4 mosaic from a monochromatic image
-def mosaic(filename):
-	img   = cv2.imread(filename, 0)
-	p_len = np.uint8(img.shape[0]/4)
-	b = []
-	for y in range(4):
-		for x in range(4):
-			aux = img[y*p_len:(y+1)*p_len, x*p_len:(x+1)*p_len]
-			b.append(aux)
-	r0 = np.concatenate((b[5],b[10],b[12],b[2]), axis=1)
-	r1 = np.concatenate((b[7],b[15],b[0],b[8]), axis=1)
-	r2 = np.concatenate((b[11],b[13],b[1],b[6]), axis=1)
-	r3 = np.concatenate((b[3],b[14],b[9],b[4]), axis=1)
-	img2 = np.concatenate((r0,r1,r2,r3))
-	cv2.imwrite('Outputs/mosaic.png', img2)
+# Assumes square image (and possible to do a 4x4 mosaic), receives new order.
+def mosaic(filename, arrange):
+	img     = cv2.imread(filename, 0)
+	arrange = np.array(arrange)
+	p_len   = np.uint16(img.shape[0]/4)
+	
+	# Split image in 16 blocks
+	i=0
+	blocks = np.ndarray(16, np.ndarray)
+	for y in range(0, img.shape[0], p_len):
+		for x in range(0, img.shape[1], p_len):
+			blocks[i] = img[y:y+p_len, x:x+p_len]
+			i+=1
+	
+	# Concatenate rows of blocks, then all rows.
+	rows = np.ndarray(4, np.ndarray)
+	for i in range(4):
+		rows[i] = np.concatenate(blocks[arrange[i]], axis=1)
+	img = np.concatenate(rows)
+	cv2.imwrite('Outputs/mosaic.png', img)
 
 # Part 5
 # Combine 2 images by weighted average
