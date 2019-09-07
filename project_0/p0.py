@@ -1,5 +1,4 @@
 from cv2 import imwrite, imread
-from os import splitText, basename
 import numpy as np
 
 # Part 1
