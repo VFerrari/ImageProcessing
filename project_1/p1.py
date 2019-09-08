@@ -1,7 +1,7 @@
 from cv2 import imwrite, imread, copyMakeBorder, BORDER_CONSTANT
 from cv2 import imshow, waitKey, destroyAllWindows, IMREAD_COLOR, IMREAD_GRAYSCALE
 from math import floor
-import os
+from os.path import split, basename, join
 import numpy as np
 
 # Self-explanatory
@@ -9,6 +9,11 @@ def show_image(img, name='Image'):
     imshow(name, img)
     waitKey(0)
     destroyAllWindows()
+
+def save_image(img, path, folder):
+    f,name = split(path)
+    name = basename(f) + '_' + name
+    imwrite(join(folder, name), img)
 
 # Dithering function
 # Receives the image and the error distribution (mask)
@@ -50,7 +55,7 @@ def dithering(img, error_dist, alt):
     return out
             
 # Halftones an image via dithering with error diffusion.
-def halftoning(filename, error_dist, alternating, color):
+def halftoning(filename, error_dist, alternating=True, color=True, folder='Outputs'):
     error_dist = np.array(error_dist)
     
     # Choosing grayscale or color image
@@ -62,5 +67,5 @@ def halftoning(filename, error_dist, alternating, color):
         img = imread(filename, IMREAD_GRAYSCALE)
         img = dithering(img, error_dist, alternating)
         
-    show_image(img)
-    imwrite("Outputs/test.png", img)
+    show_image(img, basename(filename))
+    save_image(img, filename, folder)
