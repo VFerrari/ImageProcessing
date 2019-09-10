@@ -1,8 +1,14 @@
+# Victor Ferreira Ferrari, RA 187890
+# MC920 - Introduction to Image Digital Processing
+# Last modified: 08/09/2019
+
 from cv2 import imwrite, imread, copyMakeBorder, BORDER_CONSTANT
 from cv2 import imshow, waitKey, destroyAllWindows, IMREAD_COLOR, IMREAD_GRAYSCALE
 from math import floor
 from os.path import split, basename, join
 import numpy as np
+import argparse
+import constants
 
 # Self-explanatory
 def show_image(img, name='Image'):
@@ -10,9 +16,9 @@ def show_image(img, name='Image'):
     waitKey(0)
     destroyAllWindows()
 
-def save_image(img, path, folder):
-    f,name = split(path)
-    name = basename(f) + '_' + name
+def save_image(img, path, folder, dist, color=True):
+    color_type = 'color' if color else 'gray'
+    name = color_type + '_' + dist.lower() + '_' + basename(path)
     imwrite(join(folder, name), img)
 
 # Dithering function
@@ -66,6 +72,28 @@ def halftoning(filename, error_dist, alternating=True, color=True, folder='Outpu
     else:
         img = imread(filename, IMREAD_GRAYSCALE)
         img = dithering(img, error_dist, alternating)
-        
-    show_image(img, basename(filename))
-    save_image(img, filename, folder)
+
+    return img
+
+# Parses arguments, chooses distribution and calls halftoning function
+def main():
+    parser = argparse.ArgumentParser(description='Halftones image according to a specific error distribution')
+    parser.add_argument('file', help='Name of the file containing the image (PNG)')
+    parser.add_argument('dist', help='Name of the error diffusion distribution: floyd, stevenson, burkes, sierra, stucki, jarvis.')
+    parser.add_argument('--zig', metavar='True/False', type=bool, help='True if to zigzag through the image (defaults to True).', default=True)
+    parser.add_argument('--color', metavar='True/False', type=bool, help='True if image is colored (defaults to True).', default=True)
+    parser.add_argument('--folder', help='Folder to save halftone image (defaults to Outputs/).', default='Outputs')
+    args = parser.parse_args()
+    
+    # Selecting error diffusion distribution
+    dist = constants.select_dist(args.dist)
+    
+    # Halftones image
+    img = halftoning(args.file, dist, args.zig, args.color, args.folder)
+    
+    # Shows and saves image
+    show_image(img, basename(args.file))
+    save_image(img, args.file, args.folder, args.dist, args.color)
+
+if __name__ == "__main__":
+    main()
