@@ -1,11 +1,11 @@
 # Victor Ferreira Ferrari, RA 187890
 # MC920 - Introduction to Image Digital Processing
-# Last modified: 08/09/2019
+# Last modified: 10/09/2019
 
 from cv2 import imwrite, imread, copyMakeBorder, BORDER_CONSTANT
 from cv2 import imshow, waitKey, destroyAllWindows, IMREAD_COLOR, IMREAD_GRAYSCALE
 from math import floor
-from os.path import split, basename, join
+from os.path import basename, join
 import numpy as np
 import argparse
 import constants
@@ -16,8 +16,8 @@ def show_image(img, name='Image'):
     waitKey(0)
     destroyAllWindows()
 
-def save_image(img, path, folder, dist, color=True):
-    color_type = 'color' if color else 'gray'
+def save_image(img, path, folder, dist, mono=True):
+    color_type = 'gray' if mono else 'color'
     name = color_type + '_' + dist.lower() + '_' + basename(path)
     imwrite(join(folder, name), img)
 
@@ -61,39 +61,40 @@ def dithering(img, error_dist, alt):
     return out
             
 # Halftones an image via dithering with error diffusion.
-def halftoning(filename, error_dist, alternating=True, color=True, folder='Outputs'):
+def halftoning(filename, error_dist, alternating=True, mono=False, folder='Outputs'):
     error_dist = np.array(error_dist)
     
     # Choosing grayscale or color image
-    if color:
+    if mono:
+        img = imread(filename, IMREAD_GRAYSCALE)
+        img = dithering(img, error_dist, alternating)
+    else:
         img = imread(filename, IMREAD_COLOR)
         for i in range(img.shape[2]):
             img[:,:,i] = dithering(img[:,:,i], error_dist, alternating)
-    else:
-        img = imread(filename, IMREAD_GRAYSCALE)
-        img = dithering(img, error_dist, alternating)
-
+        
     return img
 
 # Parses arguments, chooses distribution and calls halftoning function
 def main():
-    parser = argparse.ArgumentParser(description='Halftones image according to a specific error distribution')
+    parser = argparse.ArgumentParser(description='Halftones image according to a specific error distribution.')
     parser.add_argument('file', help='Name of the file containing the image (PNG)')
-    parser.add_argument('dist', help='Name of the error diffusion distribution: floyd, stevenson, burkes, sierra, stucki, jarvis.')
-    parser.add_argument('--zig', metavar='True/False', type=bool, help='True if to zigzag through the image (defaults to True).', default=True)
-    parser.add_argument('--color', metavar='True/False', type=bool, help='True if image is colored (defaults to True).', default=True)
+    parser.add_argument('dist', help='Name of the error diffusion distribution: floyd, stevenson, burkes, sierra, stucki, jarvis. "all" for trying every one.')
     parser.add_argument('--folder', help='Folder to save halftone image (defaults to Outputs/).', default='Outputs')
+    parser.add_argument('--zig', help='Use this option if zigzag through the image required.', action='store_true')
+    parser.add_argument('--mono', help='Use this option if monochromatic image.', action='store_true')
     args = parser.parse_args()
     
     # Selecting error diffusion distribution
     dist = constants.select_dist(args.dist)
     
     # Halftones image
-    img = halftoning(args.file, dist, args.zig, args.color, args.folder)
+    for i in range(len(dist)):
+        img = halftoning(args.file, dist[i], args.zig, args.mono, args.folder)
     
-    # Shows and saves image
-    show_image(img, basename(args.file))
-    save_image(img, args.file, args.folder, args.dist, args.color)
+        # Shows and saves image
+        #show_image(img, basename(args.file))
+        save_image(img, args.file, args.folder, constants.NAMES[i], args.mono)
 
 if __name__ == "__main__":
     main()

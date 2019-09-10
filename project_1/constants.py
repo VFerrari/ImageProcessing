@@ -28,4 +28,5 @@ DISTS = [FLOYD,STEVENSON,BURKES,SIERRA,STUCKI,JARVIS]
 NAMES = ['FLOYD','STEVENSON','BURKES','SIERRA','STUCKI','JARVIS']
 
 def select_dist(name):
-    return DISTS[NAMES.index(name.upper())]
+    dist = DISTS if name.lower()=='all' else [DISTS[NAMES.index(name.upper())]]
+    return dist
