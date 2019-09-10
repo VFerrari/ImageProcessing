@@ -62,7 +62,6 @@ def dithering(img, error_dist, alt):
             
 # Halftones an image via dithering with error diffusion.
 def halftoning(filename, error_dist, alternating=True, mono=False, folder='Outputs'):
-    error_dist = np.array(error_dist)
     
     # Choosing grayscale or color image
     if mono:
