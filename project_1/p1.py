@@ -61,7 +61,7 @@ def dithering(img, error_dist, alt):
     return out
             
 # Halftones an image via dithering with error diffusion.
-def halftoning(filename, error_dist, alternating=True, mono=False, folder='Outputs'):
+def halftoning(filename, error_dist, alternating=False, mono=False, folder='Outputs'):
     
     # Choosing grayscale or color image
     if mono:
@@ -92,7 +92,7 @@ def main():
         img = halftoning(args.file, dist[i], args.zig, args.mono, args.folder)
     
         # Shows and saves image
-        #show_image(img, basename(args.file))
+        show_image(img, basename(args.file))
         save_image(img, args.file, args.folder, constants.NAMES[i], args.mono)
 
 if __name__ == "__main__":
