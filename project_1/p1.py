@@ -93,7 +93,8 @@ def main():
     
         # Shows and saves image
         show_image(img, basename(args.file))
-        save_image(img, args.file, args.folder, constants.NAMES[i], args.mono)
+        name = constants.NAMES[i] if args.dist == 'all' else args.dist
+        save_image(img, args.file, args.folder, name, args.mono)
 
 if __name__ == "__main__":
     main()
