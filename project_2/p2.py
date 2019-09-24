@@ -9,7 +9,7 @@ from os.path import join, basename
 from math import exp
 import numpy as np
 
-def thresholding(filename, method='global', thresh=127, neigh_size=3, folder='Outputs'):
+def thresholding(filename, method='global', thresh=128, neigh_size=9, folder='Outputs'):
     
     # Reads image and applies thresholding
     img = imread(filename, IMREAD_GRAYSCALE)
@@ -20,22 +20,32 @@ def thresholding(filename, method='global', thresh=127, neigh_size=3, folder='Ou
     
     # Shows and saves final image
     show_image(img, basename(filename))
-    save_image(img, filename, method_key, folder)
+    save_image(img, filename, method, folder)
 
 # Global threshold: Fixed threshold value.
 def global_thresh(img, thresh):
-    return np.uint8(np.where(img>thresh, 255, 0))
+    return np.uint8(np.where(img >= thresh, 255, 0))
 
 # Local threshold: thresholds depending on neighborhood of arbitrary size.
 # Size should be small enough to preserve detail, but large enough to supress noise.
-def local_thresh(img, method_key, size):
+def local_thresh(img, method_key, size, k=0.25, r=0.5, p=2, q=10):
     methods = {'bernsen':bernsen, 'niblack':niblack, 'sauvola':sauvola_pietaksinen,
                'more':phansalskar_more_sabale, 'contrast': contrast_method,
                'mean':mean_method, 'median':median_method}
     
-    # Gets method function.
-    method = methods.get(method_key, None)
+    # Gets threshold method.
+    thresh = methods.get(method_key, None)
+    t_mat = np.zeros(img.shape)
+    deltaXY = size//2
     
+    # Applies locally
+    for y in range(img.shape[0]):
+        for x in range(img.shape[1]):
+            win = img[max(0, y-deltaXY) : min(y+deltaXY+1, img.shape[0]),
+                      max(0, x-deltaXY) : min(x+deltaXY+1, img.shape[1])]
+            t_mat[y,x] = thresh(win, k, r, p, q)
+            
+    img = np.uint8(np.where(img >= t_mat, 255, 0))
     return img
 
 # Local thresholding method: (zmax + zmin)/2 is the threshold
@@ -66,7 +76,7 @@ def phansalskar_more_sabale(window, k, r, p, q):
 def contrast_method(window, *_):
     shape = window.shape
     pixel = window[shape[0]//2, shape[1]//2]
-    return 0 if abs(pixel-np.amax(window)) < abs(pixel-np.amin(window)) else 255
+    return 0 if abs(int(pixel-np.amax(window))) < abs(int(pixel-np.amin(window))) else 255
 
 # Local thresholding method: mean is the threshold
 def mean_method(window, *_):
