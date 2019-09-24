@@ -1,22 +1,52 @@
 # Victor Ferreira Ferrari, RA 187890
 # MC920 - Introduction to Image Digital Processing
 # Project 2 - Global and Local Thresholding on Monochromatic Images
-# Last modified: 21/09/2019
+# Last modified: 24/09/2019
 
 from cv2 import imwrite, imread
 from cv2 import imshow, waitKey, destroyAllWindows, IMREAD_GRAYSCALE
 from os.path import join, basename
 from math import exp
 import numpy as np
+import argparse
 
-def thresholding(filename, method='global', thresh=128, neigh_size=9, folder='Outputs'):
+def main():
+    methods = ['global', 'bernsen', 'niblack', 'sauvola', 'more', 'contrast', 'mean', 'median']
+    
+    parser = argparse.ArgumentParser(description='Applies global or local thresholding to an image, according to various methods.')
+    parser.add_argument('file', help='Name of the file containing the image (PGM)')
+    parser.add_argument('method', help='Name of the thresholding method: global, bernsen, niblack, sauvola, more, contrast, mean, median. "all" for trying every one.')
+    parser.add_argument('--size', help='Size of local thresholding window (defaults to 7, for a 7x7 window).', default=7, type=int)
+    parser.add_argument('--folder', help='Folder to save binary image (defaults to Outputs/).', default='Outputs')
+    parser.add_argument('--thresh', help='Value of global threshold. May not be needed, defaults to 128.', default=128, type=int)
+    parser.add_argument('--k', help='Value of parameter "k". May not be needed, defaults to 0.25, for "more".', default=0.25, type=float)
+    parser.add_argument('--R', help='Value of parameter "R". May not be needed, defaults to 0.5, for "more".', default=0.5, type=float)
+    parser.add_argument('--p', help='Value of parameter "p". May not be needed, defaults to 2.', default=2, type=float)
+    parser.add_argument('--q', help='Value of parameter "q". May not be needed, defaults to 10.', default=10, type=float)
+    
+    args = parser.parse_args()
+    
+    # Checking method
+    if args.method == 'all':
+        mets = methods 
+    elif args.method not in methods:
+        print("Not a valid method!")
+        return
+    else:
+        mets = [args.method]
+    
+    # Thresholds image
+    for i in range(len(mets)):
+        thresholding(args.file, mets[i], args.thresh, args.size, args.folder, (args.k, args.R, args.p, args.q))
+
+def thresholding(filename, method='global', thresh=128, neigh_size=9, folder='Outputs', params=(0.25,0.5,2,10)):
     
     # Reads image and applies thresholding
     img = imread(filename, IMREAD_GRAYSCALE)
     if method == 'global':
         img = global_thresh(img, thresh) 
     else:
-        img = local_thresh(img, method, neigh_size)
+        img = local_thresh(img, method, neigh_size, *params)
     
     # Shows and saves final image
     show_image(img, basename(filename))
@@ -54,6 +84,7 @@ def bernsen(window, *_):
 
 # Local thresholding method: mean + k*stdev is the threshold. 
 # Statistical method, k is an adjustment parameter.
+# k=-0,2 is suggested, for window of size 15.
 def niblack(window, k, *_):
     return np.mean(window) + k*np.std(window)
 
@@ -76,7 +107,7 @@ def phansalskar_more_sabale(window, k, r, p, q):
 def contrast_method(window, *_):
     shape = window.shape
     pixel = window[shape[0]//2, shape[1]//2]
-    return 0 if abs(int(pixel-np.amax(window))) < abs(int(pixel-np.amin(window))) else 255
+    return 0 if abs(int(pixel)-int(np.amax(window))) < abs(int(pixel)-int(np.amin(window))) else 255
 
 # Local thresholding method: mean is the threshold
 def mean_method(window, *_):
@@ -95,3 +126,6 @@ def show_image(img, name='Image'):
 def save_image(img, path, method, folder):
     name = method.lower() + '_' + basename(path)
     imwrite(join(folder, name), img)
+
+if __name__ == "__main__":
+    main()
