@@ -1,13 +1,14 @@
 # Victor Ferreira Ferrari, RA 187890
 # MC920 - Introduction to Image Digital Processing
 # Project 2 - Global and Local Thresholding on Monochromatic Images
-# Last modified: 24/09/2019
+# Last modified: 28/09/2019
 
 from cv2 import imwrite, imread
 from cv2 import imshow, waitKey, destroyAllWindows, IMREAD_GRAYSCALE
-from os.path import join, basename
+from os.path import join, basename, splitext
 from math import exp
 import numpy as np
+import matplotlib.pyplot as plt
 import argparse
 
 def main():
@@ -16,9 +17,9 @@ def main():
     parser = argparse.ArgumentParser(description='Applies global or local thresholding to an image, according to various methods.')
     parser.add_argument('file', help='Name of the file containing the image (PGM)')
     parser.add_argument('method', help='Name of the thresholding method: global, bernsen, niblack, sauvola, more, contrast, mean, median. "all" for trying every one.')
-    parser.add_argument('--size', help='Size of local thresholding window (defaults to 7, for a 7x7 window).', default=7, type=int)
-    parser.add_argument('--folder', help='Folder to save binary image (defaults to Outputs/).', default='Outputs')
     parser.add_argument('--thresh', help='Value of global threshold. May not be needed, defaults to 128.', default=128, type=int)
+    parser.add_argument('--folder', help='Folder to save binary image (defaults to Outputs/).', default='Outputs')
+    parser.add_argument('--size', help='Size of local thresholding window (defaults to 7, for a 7x7 window).', default=7, type=int)
     parser.add_argument('--k', help='Value of parameter "k". May not be needed, defaults to 0.25, for "more".', default=0.25, type=float)
     parser.add_argument('--R', help='Value of parameter "R". May not be needed, defaults to 0.5, for "more".', default=0.5, type=float)
     parser.add_argument('--p', help='Value of parameter "p". May not be needed, defaults to 2.', default=2, type=float)
@@ -37,20 +38,24 @@ def main():
     
     # Thresholds image
     for i in range(len(mets)):
-        thresholding(args.file, mets[i], args.thresh, args.size, args.folder, (args.k, args.R, args.p, args.q))
+        img = imread(args.file, IMREAD_GRAYSCALE)
+        orig = img.copy()
+        
+        img = thresholding(img, mets[i], args.thresh, args.size, (args.k, args.R, args.p, args.q))
+        histogram_stats(img, orig, save=True, name=basename(args.file), folder=args.folder)
+        
+        # Shows and saves final image
+        show_image(img, basename(args.file))
+        save_image(img, args.file, mets[i], args.folder)
 
-def thresholding(filename, method='global', thresh=128, neigh_size=9, folder='Outputs', params=(0.25,0.5,2,10)):
-    
-    # Reads image and applies thresholding
-    img = imread(filename, IMREAD_GRAYSCALE)
+# Applies thresholding in an image, with different possible methods.
+def thresholding(img, method='global', thresh=128, neigh_size=9, params=(0.25,0.5,2,10)):
     if method == 'global':
         img = global_thresh(img, thresh) 
     else:
         img = local_thresh(img, method, neigh_size, *params)
     
-    # Shows and saves final image
-    show_image(img, basename(filename))
-    save_image(img, filename, method, folder)
+    return img
 
 # Global threshold: Fixed threshold value.
 def global_thresh(img, thresh):
@@ -117,6 +122,32 @@ def mean_method(window, *_):
 def median_method(window, *_):
     return np.median(window)
 
+# Plots histogram for original image.
+# Gets proportions of white and black pixels for final image.
+def histogram_stats(img, original, save=True, name='image', folder='Outputs'):
+    
+    # Histogram
+    plt.hist(original, bins='auto')
+    plt.title("Original Image Histogram")
+    plt.xlim(0,255)
+    plt.xlabel("Gray Level")
+    plt.ylabel("Amount of pixels")
+
+    # Save/Show
+    if save:
+        f,_ = splitext(name)
+        name = "hist_" + f + '.png'
+        path = join(folder,name)
+        plt.savefig(path)
+    plt.show()
+    
+    # Fractions
+    amount = img.size
+    white = np.count_nonzero(img)
+    black = amount - white
+    print("Fraction of white pixels: ", white/amount)
+    print("Fraction of black pixels: ", black/amount)
+    
 # Self-explanatory
 def show_image(img, name='Image'):
     imshow(name, img)
