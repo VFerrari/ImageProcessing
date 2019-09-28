@@ -18,12 +18,12 @@ def main():
     parser.add_argument('file', help='Name of the file containing the image (PGM)')
     parser.add_argument('method', help='Name of the thresholding method: global, bernsen, niblack, sauvola, more, contrast, mean, median. "all" for trying every one.')
     parser.add_argument('--thresh', help='Value of global threshold. May not be needed, defaults to 128.', default=128, type=int)
-    parser.add_argument('--folder', help='Folder to save binary image (defaults to Outputs/).', default='Outputs')
     parser.add_argument('--size', help='Size of local thresholding window (defaults to 7, for a 7x7 window).', default=7, type=int)
     parser.add_argument('--k', help='Value of parameter "k". May not be needed, defaults to 0.25, for "more".', default=0.25, type=float)
     parser.add_argument('--R', help='Value of parameter "R". May not be needed, defaults to 0.5, for "more".', default=0.5, type=float)
     parser.add_argument('--p', help='Value of parameter "p". May not be needed, defaults to 2.', default=2, type=float)
     parser.add_argument('--q', help='Value of parameter "q". May not be needed, defaults to 10.', default=10, type=float)
+    parser.add_argument('--folder', help='Folder to save binary image (defaults to Outputs/).', default='Outputs')
     
     args = parser.parse_args()
     
@@ -90,20 +90,20 @@ def bernsen(window, *_):
 # Local thresholding method: mean + k*stdev is the threshold. 
 # Statistical method, k is an adjustment parameter.
 # k=-0,2 is suggested, for window of size 15.
-def niblack(window, k, *_):
+def niblack(window, k=-0.2, *_):
     return np.mean(window) + k*np.std(window)
 
 # Local thresholding method building on Niblack.
 # Particularly for images with bad lighting.
 # k and R are adjustment parameters. Suggested k=0,5 and R=128
-def sauvola_pietaksinen(window, k, r, *_):
+def sauvola_pietaksinen(window, k=0.5, r=128, *_):
     return np.mean(window) * (1 + k*(np.std(window)/r - 1))
 
 # Local thresholding method building on Sauvola/Pietaksinen.
 # Deals with low contrast images.
 # k, R, p, q are adjustment parameters. Suggested k=0,25, R=0,5, p=2 and q=10.
 # R is different from Sauvola because it uses normalized intensity.
-def phansalskar_more_sabale(window, k, r, p, q):
+def phansalskar_more_sabale(window, k=0.25, r=0.5, p=2, q=10):
     mean = np.mean(window)
     return mean * (1 + p * exp(-1*q*mean) + k * (np.std(window)/r - 1))
 
