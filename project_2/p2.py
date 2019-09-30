@@ -36,17 +36,20 @@ def main():
     else:
         mets = [args.method]
     
+    # Reads image and creates copy.
+    img = imread(args.file, IMREAD_GRAYSCALE)
+    orig = img.copy()
+    
     # Thresholds image
     for i in range(len(mets)):
-        img = imread(args.file, IMREAD_GRAYSCALE)
-        orig = img.copy()
-        
         img = thresholding(img, mets[i], args.thresh, args.size, (args.k, args.R, args.p, args.q))
         histogram_stats(img, orig, save=True, name=basename(args.file), folder=args.folder)
         
         # Shows and saves final image
         show_image(img, basename(args.file))
         save_image(img, args.file, mets[i], args.folder)
+        
+        img = imread(args.file, IMREAD_GRAYSCALE)
 
 # Applies thresholding in an image, with different possible methods.
 def thresholding(img, method='global', thresh=128, neigh_size=9, params=(0.25,0.5,2,10)):
@@ -128,7 +131,7 @@ def histogram_stats(img, original, save=True, name='image', folder='Outputs'):
     
     # Histogram
     plt.hist(original, bins='auto')
-    plt.title("Original Image Histogram")
+    plt.title("Original " + name + " Histogram")
     plt.xlim(0,255)
     plt.xlabel("Gray Level")
     plt.ylabel("Amount of pixels")
