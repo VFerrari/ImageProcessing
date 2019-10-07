@@ -15,12 +15,18 @@ def main():
         print("Please pass an image as argument!")
     
     img = imread(argv[1], IMREAD_COLOR)
-    img = color_to_gray(img)
-    show_image(img)
-    return
+    img = rgb_to_gray(img)
+    show_image(img, name='Grayscale Image')
+    img = gray_to_binary(img)
+    show_image(img, name='Binary Image')
 
-def color_to_gray(img):
+# Receives a RGB image and converts to grayscale.
+def rgb_to_gray(img):
     return img.dot([0.0722,0.7152,0.2126]).astype(np.uint8)
+
+# Global thresholding for binary image
+def gray_to_binary(img):
+    return np.where(img < 250, 0, 255).astype(np.uint8)
 
 # Self-explanatory
 def show_image(img, name='Image'):
