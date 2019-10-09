@@ -20,8 +20,9 @@ def main():
     show_image(img, name='Colored Image')
     
     label = region_split(img)
-    object_properties(label)
+    prop = object_properties(label)
     
+    area_histogram(prop, argv[1])
 
 # Splits regions on an image.
 # Image has to have gray objects on a white background.
@@ -48,13 +49,42 @@ def region_split(img):
     return labeled
 
 # Get object properties from labeled image.
+# Print some properties.
+# Properties: Area, Perimeter, Eccentricity, Solidity
 def object_properties(label):
-    regions = regionprops(label)
+    regions = regionprops(label, coordinates='rc')
     
-    for region in regions:
-        print(region.perimeter)
-        print(region.area)
+    print("número de regiões: ", len(regions))
+    for i,reg in enumerate(regions):
+        print(f'região {i}:', end=' ')
+        print(f' área: {reg.area:4d}', end=' ')
+        print(f' perímetro: {reg.perimeter:10.6f}', end=' ')
+        print(f' excentricidade: {reg.eccentricity:.6f}', end=' ')
+        print(f' solidez: {reg.solidity:.6f}')
+        
+    return regions
     
+# Create an area size histogram.
+# Classifies regions in small, medium and large
+def area_histogram(properties, filename):
+    sizes = np.zeros(3).astype(np.uint8)
+    areas = []
+    
+    for reg in properties:
+        size = min(reg.area//1500, 2)
+        sizes[size]+=1
+        areas.append(reg.area)
+    
+    print('número de regiões pequenas:', sizes[0])
+    print('número de regiões médias:', sizes[1])
+    print('número de regiões grandes:', sizes[2])
+    
+    plt.hist(areas, bins=3, ec='black', color='blue')
+    plt.xlabel("Área")
+    plt.ylabel("Número de Objetos")
+    plt.title(f"Histograma de Áreas dos Objetos de {basename(filename)}", )
+    plt.xticks(range(0, max(areas)+1000, 500))
+    plt.show()
 
 # Self-explanatory
 def show_image(img, name='Image'):
