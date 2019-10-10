@@ -23,7 +23,7 @@ def main():
     number_regions(img, contours)
     prop = object_properties(label)
     
-    area_histogram(prop, argv[1])
+    #area_histogram(prop, argv[1])
 
 # Splits regions on an image.
 # Image has to have gray objects on a white background.
@@ -44,7 +44,7 @@ def region_split(img):
     # Find object contours and show.
     cont, _= cv2.findContours(gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     gray[:] = 255
-    cv2.drawContours(gray, cont, -1, (0,0,255), 2)
+    cv2.drawContours(gray, cont, -1, (0,0,255), 1)
     show_image(gray, name='Contours')
     
     return labeled, cont
@@ -52,12 +52,20 @@ def region_split(img):
 # Add label number for each region on its centroid.
 def number_regions(img, contours):
     n = len(contours)-1
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    
     for i,cnt in enumerate(contours):
+        label = n-i
+        text_size = cv2.getTextSize(str(label), font, 0.5, 0)[0]
+
         m = cv2.moments(cnt)
-        x = int(m['m10'] // m['m00'])
-        y = int(m['m01'] // m['m00'])
+        x = round(m['m10'] / m['m00'])
+        y = round(m['m01'] / m['m00'])
+        textX = x-(text_size[0]//2)
+        textY = y+(text_size[1]//2)
         
-        cv2.putText(img, f'{n-i}', (x, y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.5, (0,0,0), 0)
+        cv2.putText(img, f'{label}', (textX, textY), font, fontScale=0.3, color=(0,0,0), thickness=0, lineType=cv2.LINE_AA)
+        
     show_image(img, name='Labels')
 
 # Get object properties from labeled image.
