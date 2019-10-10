@@ -1,7 +1,7 @@
 # Victor Ferreira Ferrari, RA 187890
 # MC920 - Introduction to Image Digital Processing
 # Project 3 - Properties of Objects in Images
-# Last modified: 08/10/2019
+# Last modified: 09/10/2019
 
 from os.path import join, basename, splitext
 from sys import argv
@@ -19,14 +19,15 @@ def main():
     img = cv2.imread(argv[1], cv2.IMREAD_COLOR)
     show_image(img, name='Colored Image')
     
-    label = region_split(img)
+    label, contours = region_split(img)
+    number_regions(img, contours)
     prop = object_properties(label)
     
     area_histogram(prop, argv[1])
 
 # Splits regions on an image.
 # Image has to have gray objects on a white background.
-# Return region contours.
+# Return region contours and labeled image.
 def region_split(img):
     
     # Grayscale 
@@ -46,7 +47,18 @@ def region_split(img):
     cv2.drawContours(gray, cont, -1, (0,0,255), 2)
     show_image(gray, name='Contours')
     
-    return labeled
+    return labeled, cont
+
+# Add label number for each region on its centroid.
+def number_regions(img, contours):
+    n = len(contours)-1
+    for i,cnt in enumerate(contours):
+        m = cv2.moments(cnt)
+        x = int(m['m10'] // m['m00'])
+        y = int(m['m01'] // m['m00'])
+        
+        cv2.putText(img, f'{n-i}', (x, y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.5, (0,0,0), 0)
+    show_image(img, name='Labels')
 
 # Get object properties from labeled image.
 # Print some properties.
