@@ -20,8 +20,8 @@ def main():
     # Read color image
     img = imread(args.img, IMREAD_COLOR)
     
-    bin_seq = steganography_decode(img, args.bit_plane)
-    txt = ascii_to_txt(bin_seq)
+    asc_seq = steganography_decode(img, args.bit_plane)
+    txt = ascii_to_txt(asc_seq)
     
     # Saving txt
     out = join(args.folder, args.out_txt)
@@ -43,11 +43,11 @@ def steganography_decode(img, bit_plane):
     return msg
 
 # Transforms binary sequence into a string.
-def ascii_to_txt(bin_msg):
+def ascii_to_txt(asc_msg):
     
     # Getting EOM
-    end = min(np.argwhere(bin_msg == 254)[0][0], len(bin_msg))
-    actual_msg = bin_msg[:end]
+    end = min(np.argwhere(asc_msg == 254)[0][0], asc_msg.size)
+    actual_msg = asc_msg[:end]
     
     return actual_msg.tostring().decode('UTF-8')
 
