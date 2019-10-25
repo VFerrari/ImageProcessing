@@ -10,14 +10,11 @@ import numpy as np
 import argparse
 
 def main():
-    
-    # Arguments
     parser = argparse.ArgumentParser(description='Adds hidden message in an image.')
     parser.add_argument('img', help='Name of the file containing the coded image (PNG)')
     parser.add_argument('bit_plane', help='Bit plane in which to find the message.', type=int)
     parser.add_argument('out_txt', help='Name of the file to write the hidden text.')
     parser.add_argument('--folder', help='Folder to save coded image (defaults to Outputs/).', default='Outputs')
-    
     args = parser.parse_args()
 
     # Read color image
@@ -31,32 +28,28 @@ def main():
     with open(out, 'w') as f:
         n = f.write(txt)
 
-
 # Decodes hidden message in image.
 def steganography_decode(img, bit_plane):
     img = img.ravel()
     
-    # Get message
+    # Get message bits
     img = np.right_shift(img, bit_plane)
     bits = np.bitwise_and(img, 1)
     
-    # Transform into an array of integers
-    msg = np.zeros(len(bits)//8)
-    for i in range(0, len(bits), 8):
-        msg[i//8] = bits[i]*128 + bits[i+1]*64 + bits[i+2]*32 + bits[i+3]*16 + bits[i+4]*8 + bits[i+5]*4 + bits[i+6]*2 + bits[i+7]
+    # Transform to integers
+    arr_bits = np.array(np.array_split(bits, 8))
+    msg = np.packbits(arr_bits)
 
-    return msg.astype('int')
+    return msg
 
 # Transforms binary sequence into a string.
 def ascii_to_txt(bin_msg):
-    chr_v = np.vectorize(chr)
     
-    # Getting EOF
-    end = min(np.where(bin_msg == 254)[0][0], len(bin_msg))
+    # Getting EOM
+    end = min(np.argwhere(bin_msg == 254)[0][0], len(bin_msg))
     actual_msg = bin_msg[:end]
-    actual_msg = chr_v(actual_msg)
     
-    return ''.join(actual_msg)
+    return actual_msg.tostring().decode('UTF-8')
 
 if __name__ == "__main__":
     main()
