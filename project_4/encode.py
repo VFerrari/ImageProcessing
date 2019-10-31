@@ -1,7 +1,7 @@
 # Victor Ferreira Ferrari, RA 187890
 # MC920 - Introduction to Image Digital Processing
 # Project 4 - Steganography: Encoder
-# Last modified: 25/10/2019
+# Last modified: 31/10/2019
 
 from cv2 import imwrite, imread
 from cv2 import imshow, waitKey, destroyAllWindows, IMREAD_COLOR
@@ -30,6 +30,14 @@ def main():
     
     show_image(out, name='Coded')
     save_image(out, args.out_img, args.folder)
+    
+    # Showing bit planes
+    for i in range(3):
+        bit = planes(out,i)
+        for j in range(3):
+            show_image(bit[:,:,j], name=('Bit Plane' + str(i) + ' Color' + str(j)))
+            save_image(bit[:,:,j], name=('bit_plane_' + str(i) + '_' + str(j) + '_' + args.out_img), folder=args.folder)
+    show_image(planes(out,7), name=('Bit plane' + str(7)))
 
 # Transforms text into bit array
 def txt_to_bits(txt):
@@ -59,6 +67,10 @@ def steganography_encode(img, txt, bit_plane):
     
     # Reshape and return
     return out.reshape(img.shape)
+
+# Gets bit planes
+def planes(img, order):
+    return ((img >> order) % 2)*255
 
 # Self-explanatory
 def show_image(img, name='Image'):
