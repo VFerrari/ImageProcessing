@@ -24,7 +24,7 @@ def main():
     out = pca_compression(img, args.comp)
     
     # Show/Save result
-    name = basename(args.file)
+    name = str(args.comp) + 'comp_' + basename(args.file)
     show_image(out.astype(np.uint8), name='Compressed')
     save_image(out, name, args.folder)
     
@@ -32,7 +32,6 @@ def main():
     metrics = eval_compression(img.astype(np.float64), out, args.file, join(args.folder, name))
     print("Compression factor:", metrics['rho'])
     print("Compression RMSE:", metrics['rmse'])
-
     
 # Compressing an image via principal component analysis.
 # Calculated using SVD.
