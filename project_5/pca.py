@@ -14,7 +14,7 @@ def main():
     parser = argparse.ArgumentParser(description='Uses Principal Component Analysis (PCA) for compression.')
     parser.add_argument('file', help='Name of the file containing the image (PNG)')
     parser.add_argument('comp', help='Amount of components to split.', type=int)
-    parser.add_argument('--plot', help='Plot component variance graph.', type=int)
+    parser.add_argument('--plot', help='Plot component variance graph.', action='store_true')
     parser.add_argument('--folder', help='Folder to save compressed image (defaults to Outputs/).', default='Outputs')
     args = parser.parse_args()
     
@@ -23,7 +23,7 @@ def main():
     
     # Checks if plot mode.
     if args.plot:
-        plot_components(img, args.plot)
+        plot_components(img, args.comp)
         name = 'comp_graph_' + basename(args.file)
         plt.savefig(join(args.folder,name))
         plt.show()
