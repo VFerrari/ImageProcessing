@@ -31,13 +31,15 @@ def main():
         # Compress image
         out = pca_compression(img, args.comp)
         
-        # Show/Save result
-        name = str(args.comp) + 'comp_' + basename(args.file)
+        # Show/Save result and original image
+        base = basename(args.file)
+        name = str(args.comp) + 'comp_' + base
         show_image(out.astype(np.uint8), name='Compressed')
         save_image(out, name, args.folder)
+        save_image(img, base, args.folder)
         
         # Evaluate result
-        metrics = eval_compression(img.astype(np.float64), out, args.file, join(args.folder, name))
+        metrics = eval_compression(img.astype(np.float64), out, join(args.folder, base), join(args.folder, name))
         print("Compression factor:", metrics['rho'])
         print("Compression RMSE:", metrics['rmse'])
     
