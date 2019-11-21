@@ -1,7 +1,7 @@
 # Victor Ferreira Ferrari, RA 187890
 # MC920 - Introduction to Image Digital Processing
 # Project 5 - Principal Component Analysis
-# Last modified: 14/11/2019
+# Last modified: 21/11/2019
 
 from cv2 import imwrite, imread
 from cv2 import imshow, waitKey, destroyAllWindows, IMREAD_COLOR
